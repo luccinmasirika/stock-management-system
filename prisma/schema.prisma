@@ -1,0 +1,117 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum AccountStatus {
+  ACTIVE
+  DELETED
+  PENDING
+  DISABLED
+}
+
+enum Sex {
+  M
+  F
+}
+
+model User {
+  id               String        @id @default(cuid())
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  avatar           Files?        @relation(fields: [fileId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  fileId           String?
+  firstName        String
+  lastName         String
+  email            String        @unique
+  sex              Sex
+  phone            String
+  password         String
+  accountStatus    AccountStatus @default(PENDING)
+  confirmationCode String        @unique
+  roles            UserRole[]
+
+  @@map("users")
+}
+
+model Resource {
+  id          String       @id @default(cuid())
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  name        String
+  description String?
+  permission  Permission[]
+
+  @@map("resources")
+}
+
+model Permission {
+  id          String           @id @default(cuid())
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  designation String
+  description String?
+  roles       RolePermission[]
+  ressource   Resource         @relation(fields: [resourceId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  resourceId  String
+
+  @@map("permissions")
+}
+
+model Role {
+  id          String           @id @default(cuid())
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  designation String
+  description String?
+  users       UserRole[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+model UserRole {
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId      String
+  role        Role      @relation(fields: [roleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  roleId      String
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+model RolePermission {
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  role         Role       @relation(fields: [roleId], references: [id])
+  roleId       String
+  permission   Permission @relation(fields: [permissionId], references: [id])
+  permissionId String
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model Files {
+  id         String       @id @default(cuid())
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  name       String
+  width      Int?
+  height     Int?
+  size       Int
+  mime       String
+  url        String
+  users      User[]
+
+  @@map("files")
+}

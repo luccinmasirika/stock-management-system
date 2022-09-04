@@ -25,13 +25,13 @@ export class AuthService {
     if (!(await this.hashMatch(password, user.password))) {
       throw new ForbiddenException('Mot de passe incorrect');
     }
-    if (user.accountStatus === 'DISABLED') {
+    if (user.status === 'DISABLED') {
       throw new ForbiddenException('Votre compte a été désactivé');
     }
-    if (user.accountStatus === 'DELETED') {
+    if (user.status === 'DELETED') {
       throw new NotFoundException("Cet utilisateur n'existe pas");
     }
-    if (user.accountStatus === 'PENDING') {
+    if (user.status === 'PENDING') {
       throw new ForbiddenException(
         'Vous devez activer votre compte avant de vous connecter',
       );
@@ -43,7 +43,6 @@ export class AuthService {
     const payload = { email: user?.email, password: user?.password };
     const profile = await this.usersService.findOneByEmail(payload.email);
     delete profile.password;
-    delete profile.confirmationCode;
     return {
       jwt: this.jwtService.sign(payload),
       user: profile,

@@ -20,21 +20,11 @@ async function bootstrap() {
   app.useStaticAssets(join(__dirname, '..', 'uploads'));
 
   const config = new DocumentBuilder()
-    .setTitle('Edusys')
-    .setDescription('Edusys API documentation')
+    .setTitle('Stock management system')
+    .setDescription('Stock management system API description')
     .setVersion('1.0.0')
-    .addTag('Global config')
     .addTag('Auth')
     .addTag('Users')
-    .addTag('Roles')
-    .addTag('Promotions')
-    .addTag('Faculties')
-    .addTag('Levels')
-    .addTag('Teachers')
-    .addTag('Submissions Settings')
-    .addTag('Subjects')
-    .addTag('Students')
-    .addTag('Requests')
     .addTag('Mailer')
     .addTag('Files')
     .build();

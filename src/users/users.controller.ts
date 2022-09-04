@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { AccountStatus } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UsersService } from './users.service';
 
@@ -18,21 +19,12 @@ export class UsersController {
     return this.usersService.getUsers();
   }
 
-  @Patch(':id/disable')
-  async disable(@Param('id') id: string) {
-    await this.usersService.disableAccount(id);
-    return 'Utilisateur désactivé avec succès';
-  }
-
   @Patch(':id/activate')
-  async activate(@Param('id') id: string) {
-    await this.usersService.activateUser(id);
+  async activate(
+    @Param('id') id: string,
+    @Body() data: { status: AccountStatus },
+  ) {
+    await this.usersService.accountStatus(id, data);
     return 'Utilisateur activé avec succès';
-  }
-
-  @Patch(':id/delete')
-  async delete(@Param('id') id: string) {
-    await this.usersService.deleteAccount(id);
-    return 'Utilisateur supprimé avec succès';
   }
 }

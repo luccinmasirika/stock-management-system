@@ -1,11 +1,8 @@
 import {
-  BadRequestException,
   Controller,
-  Get,
-  Param,
-  Post,
+  Get, Post,
   Request,
-  UseGuards,
+  UseGuards
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { UsersService } from '../users/users.service';
@@ -33,17 +30,5 @@ export class AuthController {
     const user = await this.userService.findOneByEmail(req.user.email);
     delete user.password;
     return user;
-  }
-
-  @Get('confirmation/:code')
-  async confirmation(@Param('code') code: string) {
-    try {
-      const response = await this.userService.activateAccount(code);
-      console.log(response);
-      return 'Confirmation réussie';
-    } catch (error: any) {
-      console.log(error);
-      throw new BadRequestException(error?.response?.message);
-    }
   }
 }

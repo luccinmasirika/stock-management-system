@@ -17,101 +17,107 @@ enum AccountStatus {
   DISABLED
 }
 
-enum Sex {
-  M
-  F
+enum SupplyStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum Role {
+  ADMIN
+  SELLER
 }
 
 model User {
-  id               String        @id @default(cuid())
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-  avatar           Files?        @relation(fields: [fileId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  fileId           String?
-  firstName        String
-  lastName         String
-  email            String        @unique
-  sex              Sex
-  phone            String
-  password         String
-  accountStatus    AccountStatus @default(PENDING)
-  confirmationCode String        @unique
-  roles            UserRole[]
+  id         String             @id @default(cuid())
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+  avatar     Files?             @relation(fields: [fileId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  fileId     String?
+  firstName  String
+  lastName   String
+  email      String             @unique
+  password   String
+  status     AccountStatus      @default(ACTIVE)
+  role       Role               @default(SELLER)
+  provides   Provide[]
+  recipients ProvideRecipient[]
 
   @@map("users")
 }
 
-model Resource {
-  id          String       @id @default(cuid())
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  name        String
-  description String?
-  permission  Permission[]
-
-  @@map("resources")
-}
-
-model Permission {
-  id          String           @id @default(cuid())
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  designation String
-  description String?
-  roles       RolePermission[]
-  ressource   Resource         @relation(fields: [resourceId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  resourceId  String
-
-  @@map("permissions")
-}
-
-model Role {
-  id          String           @id @default(cuid())
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  designation String
-  description String?
-  users       UserRole[]
-  permissions RolePermission[]
-
-  @@map("roles")
-}
-
-model UserRole {
+model Category {
+  id          String    @id @default(cuid())
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  userId      String
-  role        Role      @relation(fields: [roleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  roleId      String
+  name        String    @unique
+  description String
+  products    Product[]
 
-  @@id([userId, roleId])
-  @@map("user_roles")
+  @@map("categories")
 }
 
-model RolePermission {
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  role         Role       @relation(fields: [roleId], references: [id])
-  roleId       String
-  permission   Permission @relation(fields: [permissionId], references: [id])
-  permissionId String
+model Product {
+  id             String    @id @default(cuid())
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  name           String    @unique
+  description    String
+  purchasedPrice Float     @default(0)
+  sellingPrice   Float     @default(0)
+  category       Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  categoryId     String
+  supplies       Supply[]
+  provides       Provide[]
 
-  @@id([roleId, permissionId])
-  @@map("role_permissions")
+  @@map("products")
+}
+
+model Supply {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  productId String
+  quantity  Int      @default(0)
+
+  @@map("supplies")
+}
+
+model Provide {
+  id         String             @id @default(cuid())
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+  product    Product            @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  productId  String
+  quantity   Int                @default(0)
+  status     SupplyStatus       @default(PENDING)
+  provider   User               @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId     String
+  recipients ProvideRecipient[]
+}
+
+model ProvideRecipient {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  provide   Provide  @relation(fields: [provideId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  provideId String
+  recipient User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId    String
 }
 
 model Files {
-  id         String       @id @default(cuid())
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
-  name       String
-  width      Int?
-  height     Int?
-  size       Int
-  mime       String
-  url        String
-  users      User[]
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  name      String
+  width     Int?
+  height    Int?
+  size      Int
+  mime      String
+  url       String
+  users     User[]
 
   @@map("files")
 }

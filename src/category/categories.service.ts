@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateProductDto } from './dto/create-categories.dto';
-import { UpdateProductDto } from './dto/update-categories.dto';
+import { CreateCategoryDto } from './dto/create-categories.dto';
+import { UpdateCategoryDto } from './dto/update-categories.dto';
 
 @Injectable()
 export class CategoriesService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createConfigurationDto: CreateProductDto) {
+  async create(createConfigurationDto: CreateCategoryDto) {
     const { name, description } = createConfigurationDto;
     return await this.prisma.category.create({
       data: {
@@ -29,10 +29,10 @@ export class CategoriesService {
     });
   }
 
-  async update(id: string, updateProductDto: UpdateProductDto) {
+  async update(id: string, updateCategoryDto: UpdateCategoryDto) {
     return await this.prisma.category.update({
       where: { id },
-      data: { ...updateProductDto },
+      data: { ...updateCategoryDto },
     });
   }
 

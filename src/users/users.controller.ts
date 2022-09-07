@@ -14,6 +14,16 @@ export class UsersController {
     return this.usersService.register(createUserDto);
   }
 
+  @Patch(':id/update')
+  editUser(@Param('id') id: string, @Body() createUserDto: CreateUserDto) {
+    return this.usersService.editUser(id, createUserDto);
+  }
+
+  @Get(':id/profile')
+  async getUser(@Param('id') id: string) {
+    return this.usersService.findOneById(id);
+  }
+
   @Get()
   async getUsers() {
     return this.usersService.getUsers();

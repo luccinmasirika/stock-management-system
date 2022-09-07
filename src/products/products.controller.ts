@@ -6,29 +6,31 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CreateProductDto } from './dto/create-products.dto';
+import { QueryBuilderDto } from './dto/query-builder.dto';
 import { ProductsService } from './products.service';
 
 @ApiTags('Products')
-@Controller('configurations/promotions')
+@Controller('products')
 export class ProductsController {
-  constructor(private readonly promotionsService: ProductsService) {}
+  constructor(private readonly productsService: ProductsService) {}
 
   @Post()
   async create(@Body() createProductDto: CreateProductDto) {
-    return await this.promotionsService.create(createProductDto);
+    return await this.productsService.create(createProductDto);
   }
 
   @Get()
-  async findAll() {
-    return await this.promotionsService.findAll();
+  async findAll(@Query('_q') query: QueryBuilderDto) {
+    return await this.productsService.findAll(query);
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    return await this.promotionsService.findOne(id);
+    return await this.productsService.findOne(id);
   }
 
   @Patch(':id')
@@ -36,11 +38,11 @@ export class ProductsController {
     @Param('id') id: string,
     @Body() createProductDto: CreateProductDto,
   ) {
-    return await this.promotionsService.update(id, createProductDto);
+    return await this.productsService.update(id, createProductDto);
   }
 
   @Delete(':id')
   async remove(@Param('id') id: string) {
-    return await this.promotionsService.remove(id);
+    return await this.productsService.remove(id);
   }
 }

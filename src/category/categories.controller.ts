@@ -8,17 +8,17 @@ import {
   Post,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { CreateProductDto } from './dto/create-categories.dto';
+import { CreateCategoryDto } from './dto/create-categories.dto';
 import { CategoriesService } from './categories.service';
 
 @ApiTags('Categories')
-@Controller('configurations/promotions')
+@Controller('categories')
 export class CategoriesController {
   constructor(private readonly category: CategoriesService) {}
 
   @Post()
-  async create(@Body() createProductDto: CreateProductDto) {
-    return await this.category.create(createProductDto);
+  async create(@Body() createCategoryDto: CreateCategoryDto) {
+    return await this.category.create(createCategoryDto);
   }
 
   @Get()
@@ -34,9 +34,9 @@ export class CategoriesController {
   @Patch(':id')
   async update(
     @Param('id') id: string,
-    @Body() createProductDto: CreateProductDto,
+    @Body() createCategoryDto: CreateCategoryDto,
   ) {
-    return await this.category.update(id, createProductDto);
+    return await this.category.update(id, createCategoryDto);
   }
 
   @Delete(':id')

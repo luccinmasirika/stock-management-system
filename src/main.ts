@@ -24,6 +24,8 @@ async function bootstrap() {
     .setDescription('Stock management system API description')
     .setVersion('1.0.0')
     .addTag('Auth')
+    .addTag('Categories')
+    .addTag('Products')
     .addTag('Users')
     .addTag('Mailer')
     .addTag('Files')

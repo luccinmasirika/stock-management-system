@@ -2,9 +2,11 @@ import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module';
+import { CategoriesModule } from './category/categories.module';
 import { FilesModule } from './files/files.module';
 import { LoggerMiddleware } from './middleware/logger.middleware';
 import { PrismaModule } from './prisma/prisma.module';
+import { ProductsModule } from './products/products.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -25,6 +27,8 @@ import { UsersModule } from './users/users.module';
     UsersModule,
     AuthModule,
     FilesModule,
+    CategoriesModule,
+    ProductsModule,
   ],
 })
 export class AppModule implements NestModule {

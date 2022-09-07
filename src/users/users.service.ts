@@ -3,6 +3,7 @@ import { AccountStatus } from '@prisma/client';
 import * as bycrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -25,6 +26,18 @@ export class UsersService {
     });
 
     return user;
+  }
+
+  async editUser(id: string, updateUserDto: UpdateUserDto) {
+    return await this.prisma.user.update({
+      where: { id },
+      data: {
+        ...updateUserDto,
+        ...(updateUserDto.password && {
+          password: await this.hashPassword(updateUserDto.password),
+        }),
+      },
+    });
   }
 
   async findOneByEmail(email: string) {

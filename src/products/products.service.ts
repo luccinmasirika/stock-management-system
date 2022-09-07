@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateProductDto } from './dto/create-products.dto';
+import { QueryBuilderDto } from './dto/query-builder.dto';
 import { UpdateProductDto } from './dto/update-products.dto';
 
 @Injectable()
@@ -21,10 +22,31 @@ export class ProductsService {
     });
   }
 
-  async findAll() {
-    return await this.prisma.product.findMany({
+  async findAll(query: QueryBuilderDto) {
+    const products = await this.prisma.product.findMany({
       orderBy: [{ createdAt: 'desc' }],
+      where: {
+        ...(query?.category && { category: { id: query.category } }),
+        ...(query?.search && { matricule: { contains: query.search } }),
+      },
+      ...(query?.skip && query?.page && { skip: +query.skip * +query.page }),
+      ...(query?.skip && { take: +query.skip }),
+      include: { category: true },
     });
+
+    const count = await this.prisma.product.count({
+      where: {
+        ...(query?.category && { category: { id: query.category } }),
+        ...(query?.search && { matricule: { contains: query.search } }),
+      },
+    });
+
+    const meta = {
+      pages: Math.ceil(count / +query?.skip),
+      count,
+    };
+
+    return { data: { products, meta } };
   }
 
   async findOne(id: string) {

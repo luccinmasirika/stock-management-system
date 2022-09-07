@@ -28,7 +28,7 @@ export class ProductsService {
       orderBy: [{ createdAt: 'desc' }],
       where: {
         ...(query?.category && { category: { id: query.category } }),
-        ...(query?.search && { matricule: { contains: query.search } }),
+        ...(query?.search && { name: { contains: query.search } }),
       },
       ...(query?.skip && query?.page && { skip: +query.skip * +query.page }),
       ...(query?.skip && { take: +query.skip }),
@@ -38,7 +38,7 @@ export class ProductsService {
     const count = await this.prisma.product.count({
       where: {
         ...(query?.category && { category: { id: query.category } }),
-        ...(query?.search && { matricule: { contains: query.search } }),
+        ...(query?.search && { name: { contains: query.search } }),
       },
     });
 

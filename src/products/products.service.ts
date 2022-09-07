@@ -19,6 +19,7 @@ export class ProductsService {
         purchasedPrice,
         sellingPrice,
       },
+      include: { category: true },
     });
   }
 

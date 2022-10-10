@@ -24,24 +24,31 @@ enum SupplyStatus {
 }
 
 enum Role {
+  SUPER_ADMIN
   ADMIN
   SELLER
 }
 
+enum ProductStatus {
+  ACTIVE
+  DISABLED
+}
+
 model User {
-  id         String             @id @default(cuid())
-  createdAt  DateTime           @default(now())
-  updatedAt  DateTime           @updatedAt
-  avatar     Files?             @relation(fields: [fileId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  id         String        @id @default(cuid())
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  avatar     Files?        @relation(fields: [fileId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   fileId     String?
   firstName  String
   lastName   String
-  email      String             @unique
+  email      String        @unique
   password   String
-  status     AccountStatus      @default(ACTIVE)
-  role       Role               @default(SELLER)
-  provides   Provide[]
-  recipients ProvideRecipient[]
+  status     AccountStatus @default(ACTIVE)
+  role       Role          @default(SELLER)
+  MyProduct  MyProduct[]
+  providers  Provide[]     @relation("provider")
+  recipients Provide[]     @relation("recipient")
 
   @@map("users")
 }
@@ -58,53 +65,63 @@ model Category {
 }
 
 model Product {
-  id             String    @id @default(cuid())
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  name           String    @unique
+  id             String        @id @default(cuid())
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  name           String        @unique
   description    String
-  purchasedPrice Float     @default(0)
-  sellingPrice   Float     @default(0)
-  category       Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  status         ProductStatus @default(ACTIVE)
+  purchasedPrice Float         @default(0)
+  sellingPrice   Float         @default(0)
+  category       Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   categoryId     String
+  stock          Int           @default(0)
   supplies       Supply[]
   provides       Provide[]
+  MyProduct      MyProduct[]
 
   @@map("products")
 }
 
 model Supply {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  productId String
-  quantity  Int      @default(0)
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  productId   String
+  description String?
+  quantity    Int      @default(0)
 
   @@map("supplies")
 }
 
 model Provide {
-  id         String             @id @default(cuid())
-  createdAt  DateTime           @default(now())
-  updatedAt  DateTime           @updatedAt
-  product    Product            @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  productId  String
-  quantity   Int                @default(0)
-  status     SupplyStatus       @default(PENDING)
-  provider   User               @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  userId     String
-  recipients ProvideRecipient[]
+  id          String       @id @default(cuid())
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  product     Product      @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  productId   String
+  description String?
+  quantity    Int          @default(0)
+  status      SupplyStatus @default(PENDING)
+  provider    User         @relation("provider", fields: [providerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  providerId  String
+  recipient   User         @relation("recipient", fields: [recipientId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  recipientId String
 }
 
-model ProvideRecipient {
+model MyProduct {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  provide   Provide  @relation(fields: [provideId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  provideId String
-  recipient User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  productId String
+  stock     Int      @default(0)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   userId    String
+
+  @@unique([productId, userId])
+  @@map("my-products")
 }
 
 model Files {

@@ -56,6 +56,14 @@ export class UsersService {
     return await this.prisma.user.findMany();
   }
 
+  async getSuperAdmin() {
+    return this.prisma.user.findFirst({
+      where: {
+        role: 'SUPER_ADMIN',
+      },
+    });
+  }
+
   async hashPassword(pwd: string) {
     return await bycrypt.hash(pwd, 10);
   }

@@ -8,6 +8,7 @@ import { LoggerMiddleware } from './middleware/logger.middleware';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProductsModule } from './products/products.module';
 import { UsersModule } from './users/users.module';
+import { ProvidersModule } from './providers/providers.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { UsersModule } from './users/users.module';
     FilesModule,
     CategoriesModule,
     ProductsModule,
+    ProvidersModule,
   ],
 })
 export class AppModule implements NestModule {

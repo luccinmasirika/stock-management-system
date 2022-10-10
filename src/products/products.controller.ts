@@ -11,6 +11,7 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { CreateProductDto } from './dto/create-products.dto';
 import { QueryBuilderDto } from './dto/query-builder.dto';
+import { SupplyProductDto } from './dto/supply-product.dto';
 import { ProductsService } from './products.service';
 
 @ApiTags('Products')
@@ -28,6 +29,14 @@ export class ProductsController {
     return await this.productsService.findAll(query);
   }
 
+  @Get(':id/user-products')
+  async findUserProducts(
+    @Param('id') id: string,
+    @Query('_q') query: QueryBuilderDto,
+  ) {
+    return await this.productsService.getUserProducts(id, query);
+  }
+
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return await this.productsService.findOne(id);
@@ -39,6 +48,19 @@ export class ProductsController {
     @Body() createProductDto: CreateProductDto,
   ) {
     return await this.productsService.update(id, createProductDto);
+  }
+
+  @Patch(':id/disable')
+  async disable(@Param('id') id: string) {
+    return await this.productsService.disable(id);
+  }
+
+  @Patch(':productId/supply')
+  async supply(
+    @Param('productId') productId: string,
+    @Body() quantityDto: SupplyProductDto,
+  ) {
+    return await this.productsService.supply(productId, quantityDto);
   }
 
   @Delete(':id')

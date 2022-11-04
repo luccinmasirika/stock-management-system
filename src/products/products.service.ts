@@ -1,5 +1,6 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { ProvidersService } from 'src/providers/providers.service';
 import { UsersService } from 'src/users/users.service';
 import { CreateProductDto } from './dto/create-products.dto';
 import { QueryBuilderDto } from './dto/query-builder.dto';
@@ -9,8 +10,9 @@ import { UpdateProductDto } from './dto/update-products.dto';
 @Injectable()
 export class ProductsService {
   constructor(
-    private prisma: PrismaService,
-    private userService: UsersService,
+    private readonly prisma: PrismaService,
+    private readonly userService: UsersService,
+    private readonly provideService: ProvidersService,
   ) {}
 
   async create(createConfigurationDto: CreateProductDto) {
@@ -95,21 +97,18 @@ export class ProductsService {
         include: { category: true },
       });
 
-      const admin = await this.userService.getSuperAdmin();
+      const admin = await this.userService.getSuperAdmin().then((el) => el.id);
 
-      await this.prisma.myProduct.upsert({
-        where: {
-          productId_userId: { productId, userId: admin.id },
-        },
-        update: {
-          stock: { increment: quantity },
-        },
-        create: {
-          stock: quantity,
-          product: { connect: { id: productId } },
-          user: { connect: { id: admin.id } },
-        },
-      });
+      await this.provideService.increaseStock(productId, admin, quantity);
+
+      await this.provideService.provideReport(
+        productId,
+        quantity,
+        admin,
+        admin,
+        description,
+        'ACCEPTED',
+      );
 
       return product;
     } catch (e) {

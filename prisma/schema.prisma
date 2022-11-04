@@ -17,7 +17,7 @@ enum AccountStatus {
   DISABLED
 }
 
-enum SupplyStatus {
+enum ProvideStatus {
   PENDING
   ACCEPTED
   REJECTED
@@ -96,17 +96,17 @@ model Supply {
 }
 
 model Provide {
-  id          String       @id @default(cuid())
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  product     Product      @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  id          String        @id @default(cuid())
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  product     Product       @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   productId   String
   description String?
-  quantity    Int          @default(0)
-  status      SupplyStatus @default(PENDING)
-  provider    User         @relation("provider", fields: [providerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  quantity    Int           @default(0)
+  status      ProvideStatus @default(PENDING)
+  provider    User          @relation("provider", fields: [providerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   providerId  String
-  recipient   User         @relation("recipient", fields: [recipientId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  recipient   User          @relation("recipient", fields: [recipientId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   recipientId String
 }
 
@@ -120,7 +120,6 @@ model MyProduct {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   userId    String
 
-  @@unique([productId, userId])
   @@map("my-products")
 }
 

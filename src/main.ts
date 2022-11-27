@@ -27,6 +27,7 @@ async function bootstrap() {
     .addTag('Categories')
     .addTag('Products')
     .addTag('Providers')
+    .addTag('Sales')
     .addTag('Users')
     .addTag('Mailer')
     .addTag('Files')

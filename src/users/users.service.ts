@@ -57,11 +57,13 @@ export class UsersService {
   }
 
   async getSuperAdmin() {
-    return this.prisma.user.findFirst({
+    const test =  this.prisma.user.findFirst({
       where: {
         role: 'SUPER_ADMIN',
       },
     });
+    
+    return test
   }
 
   async hashPassword(pwd: string) {

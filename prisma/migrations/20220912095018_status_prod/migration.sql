@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE `products` ADD COLUMN `status` ENUM('ACTIVE', 'DISABLED') NOT NULL DEFAULT 'ACTIVE';

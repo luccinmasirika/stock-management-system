@@ -24,7 +24,7 @@ export class ProvidersService {
 
   async acceptProvide(provideId: string) {
     const { productId, recipientId, quantity } = await this.findOne(provideId);
-    await this.increaseStock(productId, recipientId, quantity);
+    const acc = await this.increaseStock(productId, recipientId, quantity);
     await this.updateProvideStatus(provideId, 'ACCEPTED');
     return 'Accepted successfully';
   }
@@ -147,61 +147,55 @@ export class ProvidersService {
     return await this.prisma.provide.findUnique({ where: { id } });
   }
 
-  async increaseStock(productId: string, userId: string, quantity: number) {
-    const product = await this.prisma.myProduct.findFirst({
+  async findProductUser({
+    productId,
+    userId,
+  }: {
+    productId: string;
+    userId: string;
+  }) {
+    return await this.prisma.myProduct.findFirst({
       where: {
         product: { id: productId },
         user: { id: userId },
       },
+      include: { product: { select: { name: true } } },
     });
+  }
 
+  async increaseStock(productId: string, userId: string, quantity: number) {
+    const product = await this.findProductUser({ productId, userId });
     if (product) {
       return await this.prisma.myProduct.update({
-        where: {
-          id: product.id,
-        },
-        data: {
-          stock: { increment: quantity },
-        },
+        where: { id: product.id },
+        data: { stock: { increment: quantity } },
         include: { product: true },
       });
     }
 
-    return await this.prisma.my
-
-    await this.prisma.myProduct.upsert({
-      where: {
-        productId_userId: { productId, userId },
-      },
-      update: {
-        stock: { increment: quantity },
-      },
-      create: {
+    return await this.prisma.myProduct.create({
+      data: {
         stock: quantity,
         product: { connect: { id: productId } },
         user: { connect: { id: userId } },
       },
-      include: { product: true },
+      include: { product: { include: { category: true } } },
     });
   }
 
   async decrementStock(productId: string, userId: string, quantity: number) {
-    const userProduct = await this.prisma.myProduct.findUnique({
-      where: { productId_userId: { productId, userId } },
-    });
+    const product = await this.findProductUser({ productId, userId });
 
-    if (userProduct.stock < quantity) {
-      throw new BadRequestException("You don't have much product");
+    if (product.stock < quantity) {
+      throw new BadRequestException(
+        `Vous n'avez pas assez de: ${product.product.name}`,
+      );
     }
 
     return await this.prisma.myProduct.update({
-      where: { productId_userId: { productId, userId } },
+      where: { id: product.id },
       include: { product: { include: { category: true } } },
-      data: {
-        stock: {
-          decrement: quantity,
-        },
-      },
+      data: { stock: { decrement: quantity } },
     });
   }
 }

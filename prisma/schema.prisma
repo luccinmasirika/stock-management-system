@@ -34,6 +34,11 @@ enum ProductStatus {
   DISABLED
 }
 
+enum SaleStatus {
+  FINISHED
+  CANCELED
+}
+
 model User {
   id         String        @id @default(cuid())
   createdAt  DateTime      @default(now())
@@ -46,9 +51,10 @@ model User {
   password   String
   status     AccountStatus @default(ACTIVE)
   role       Role          @default(SELLER)
-  MyProduct  MyProduct[]
+  products   MyProduct[]
   providers  Provide[]     @relation("provider")
   recipients Provide[]     @relation("recipient")
+  Sale       Sale[]
 
   @@map("users")
 }
@@ -65,21 +71,23 @@ model Category {
 }
 
 model Product {
-  id             String        @id @default(cuid())
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  name           String        @unique
-  description    String
-  status         ProductStatus @default(ACTIVE)
-  purchasedPrice Float         @default(0)
-  sellingPrice   Float         @default(0)
-  category       Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  categoryId     String
-  stock          Int           @default(0)
-  supplies       Supply[]
-  provides       Provide[]
-  MyProduct      MyProduct[]
+  id              String            @id @default(cuid())
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  name            String            @unique
+  description     String
+  status          ProductStatus     @default(ACTIVE)
+  purchasedPrice  Float             @default(0)
+  sellingPrice    Float             @default(0)
+  category        Category          @relation(fields: [categoryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  categoryId      String
+  stock           Int               @default(0)
+  supplies        Supply[]
+  provides        Provide[]
+  MyProduct       MyProduct[]
+  FactureProducts FactureProducts[]
 
+  @@index([id])
   @@map("products")
 }
 
@@ -108,6 +116,55 @@ model Provide {
   providerId  String
   recipient   User          @relation("recipient", fields: [recipientId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   recipientId String
+
+  @@index([id, productId, providerId, recipientId])
+  @@map("provides")
+}
+
+model Facture {
+  id          String            @id @default(cuid())
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  reference   String            @unique
+  clientName  String?
+  clientPhone String?
+  amountPaid  Float             @default(0)
+  amountDue   Float             @default(0)
+  totalAmount Float             @default(0)
+  products    FactureProducts[]
+  Sale        Sale[]
+
+  @@index([id, reference])
+  @@map("factures")
+}
+
+model FactureProducts {
+  id             String   @id @default(cuid())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  facture        Facture  @relation(fields: [factureId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  factureId      String
+  product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  productId      String
+  quantity       Int      @default(0)
+  purchasedPrice Float    @default(0)
+
+  @@index([id, factureId, productId])
+  @@map("facture_products")
+}
+
+model Sale {
+  id        String     @id @default(cuid())
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  seller    User       @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId    String
+  status    SaleStatus @default(FINISHED)
+  facture   Facture    @relation(fields: [factureId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  factureId String
+
+  @@index([id, factureId, userId])
+  @@map("sales")
 }
 
 model MyProduct {
@@ -120,6 +177,7 @@ model MyProduct {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   userId    String
 
+  @@index([id, productId, userId])
   @@map("my-products")
 }
 

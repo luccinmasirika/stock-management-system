@@ -16,9 +16,9 @@ export class SalesService {
     let i: number = 0;
     do {
       await this.providerService.decrementStock(
-        products[i]?.product?.id,
+        products[i]?.product,
         seller,
-        +products[i]?.quantity,
+        products[i]?.quantity,
       );
       i++;
     } while (products.length > i);
@@ -31,9 +31,9 @@ export class SalesService {
     await this.prisma.factureProducts.createMany({
       data: products.map((el) => ({
         factureId: facture.id,
-        productId: el?.product?.id,
-        quantity: +el?.quantity,
-        purchasedPrice: +el?.purchasedPrice,
+        productId: el?.product,
+        quantity: el?.quantity,
+        sellingPrice: +el?.sellingPrice,
       })),
     });
 

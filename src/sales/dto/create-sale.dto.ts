@@ -26,6 +26,12 @@ export class CreateSaleDto {
   })
   clientPhone: string;
   @ApiProperty({
+    type: String,
+    format: 'string',
+    example: '',
+  })
+  description: string;
+  @ApiProperty({
     type: Number,
     format: 'number',
     example: 12,

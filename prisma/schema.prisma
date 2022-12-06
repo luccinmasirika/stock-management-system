@@ -128,6 +128,7 @@ model Facture {
   reference   String            @unique
   clientName  String?
   clientPhone String?
+  description String?
   amountPaid  Float             @default(0)
   amountDue   Float             @default(0)
   totalAmount Float             @default(0)
@@ -139,15 +140,16 @@ model Facture {
 }
 
 model FactureProducts {
-  id             String   @id @default(cuid())
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  facture        Facture  @relation(fields: [factureId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  factureId      String
-  product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  productId      String
-  quantity       Int      @default(0)
-  purchasedPrice Float    @default(0)
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  facture      Facture  @relation(fields: [factureId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  factureId    String
+  product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  productId    String
+  quantity     Int      @default(0)
+  sellingPrice Float    @default(0)
+  totalAmount  Float    @default(0)
 
   @@index([id, factureId, productId])
   @@map("facture_products")

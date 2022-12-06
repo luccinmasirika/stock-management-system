@@ -29,10 +29,11 @@ export class UsersService {
   }
 
   async editUser(id: string, updateUserDto: UpdateUserDto) {
+    const { role, ...update } = updateUserDto;
     return await this.prisma.user.update({
       where: { id },
       data: {
-        ...updateUserDto,
+        ...update,
         ...(updateUserDto.password && {
           password: await this.hashPassword(updateUserDto.password),
         }),
@@ -57,13 +58,13 @@ export class UsersService {
   }
 
   async getSuperAdmin() {
-    const test =  this.prisma.user.findFirst({
+    const test = this.prisma.user.findFirst({
       where: {
         role: 'SUPER_ADMIN',
       },
     });
-    
-    return test
+
+    return test;
   }
 
   async hashPassword(pwd: string) {

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import type { Role } from '@prisma/client';
+import type { AccountStatus, Role } from '@prisma/client';
 import { IsEmail, IsOptional, IsString } from 'class-validator';
 
 export class CreateUserDto {
@@ -35,4 +35,6 @@ export class CreateUserDto {
     example: 'ADMIN',
   })
   role: Role;
+
+  status?: AccountStatus;
 }

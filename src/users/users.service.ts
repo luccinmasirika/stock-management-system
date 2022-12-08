@@ -10,7 +10,7 @@ export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   async register(createUserDto: CreateUserDto) {
-    const { email, firstName, lastName } = createUserDto;
+    const { email, firstName, lastName, status } = createUserDto;
     const hashedPassword = await this.hashPassword('EbenShop');
 
     await this.checkIfEmailIsNotUsed(email);
@@ -22,6 +22,7 @@ export class UsersService {
         lastName,
         password: hashedPassword,
         role: 'ADMIN',
+        status,
       },
     });
 
@@ -29,11 +30,13 @@ export class UsersService {
   }
 
   async editUser(id: string, updateUserDto: UpdateUserDto) {
-    const { role, ...update } = updateUserDto;
+    const { role, status, ...update } = updateUserDto;
     return await this.prisma.user.update({
       where: { id },
       data: {
         ...update,
+        ...(role && { role }),
+        ...(status && { status }),
         ...(updateUserDto.password && {
           password: await this.hashPassword(updateUserDto.password),
         }),

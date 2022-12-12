@@ -111,7 +111,7 @@ export class ProvidersService {
         }),
         ...(query?.search && { product: { name: { contains: query.search } } }),
         ...(query?.provider && { provider: { id: query.provider } }),
-        recipient: { id: userId },
+        OR: [{ recipient: { id: userId } }, { provider: { id: userId } }],
         status: 'PENDING',
       },
       ...(query?.skip && query?.page && { skip: +query.skip * +query.page }),

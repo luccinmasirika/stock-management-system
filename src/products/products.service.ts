@@ -119,7 +119,11 @@ export class ProductsService {
   async getUserProducts(userId: string, query: QueryBuilderDto) {
     const products = await this.prisma.myProduct.findMany({
       orderBy: [{ createdAt: 'desc' }],
-      where: { user: { id: userId } },
+      where: {
+        user: { id: userId },
+        ...(query?.category && { category: { id: query.category } }),
+        ...(query?.search && { product: { name: { contains: query.search } } }),
+      },
       ...(query?.skip && query?.page && { skip: +query.skip * +query.page }),
       ...(query?.skip && { take: +query.skip }),
       include: { product: { include: { category: true, _count: true } } },
@@ -129,7 +133,7 @@ export class ProductsService {
       where: {
         user: { id: userId },
         ...(query?.category && { category: { id: query.category } }),
-        ...(query?.search && { name: { contains: query.search } }),
+        ...(query?.search && { product: { name: { contains: query.search } } }),
       },
     });
 

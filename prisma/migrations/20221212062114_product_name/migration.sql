@@ -40,7 +40,6 @@ CREATE TABLE `products` (
     `categoryId` VARCHAR(191) NOT NULL,
     `stock` INTEGER NOT NULL DEFAULT 0,
 
-    UNIQUE INDEX `products_name_key`(`name`),
     INDEX `products_id_idx`(`id`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -84,6 +83,7 @@ CREATE TABLE `factures` (
     `description` VARCHAR(191) NULL,
     `amountPaid` DOUBLE NOT NULL DEFAULT 0,
     `amountDue` DOUBLE NOT NULL DEFAULT 0,
+    `totalAmount` DOUBLE NOT NULL DEFAULT 0,
 
     UNIQUE INDEX `factures_reference_key`(`reference`),
     INDEX `factures_id_reference_idx`(`id`, `reference`),

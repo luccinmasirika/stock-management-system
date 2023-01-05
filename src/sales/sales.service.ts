@@ -49,7 +49,7 @@ export class SalesService {
   }
 
   async findAll(query: QueryBuilderDto) {
-    const provides = await this.prisma.sale.findMany({
+    const sales = await this.prisma.sale.findMany({
       orderBy: [{ createdAt: 'desc' }],
       where: {
         ...(query?.search && {
@@ -79,7 +79,7 @@ export class SalesService {
       count,
     };
 
-    return { data: { provides, meta } };
+    return { data: { sales, meta } };
   }
 
   findOne(id: number) {

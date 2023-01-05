@@ -7,11 +7,13 @@ import {
   Param,
   Delete,
   InternalServerErrorException,
+  Query,
 } from '@nestjs/common';
 import { SalesService } from './sales.service';
 import { CreateSaleDto } from './dto/create-sale.dto';
 import { UpdateSaleDto } from './dto/update-sale.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { QueryBuilderDto } from './dto/query-builder.dto';
 
 @ApiTags('Sales')
 @Controller('sales')
@@ -23,14 +25,13 @@ export class SalesController {
     try {
       return this.salesService.create(createSaleDto);
     } catch (e) {
-      console.log('e', e);
       throw new InternalServerErrorException(e);
     }
   }
 
   @Get()
-  findAll() {
-    return this.salesService.findAll();
+  findAll(@Query('_q') query: QueryBuilderDto) {
+    return this.salesService.findAll(query);
   }
 
   @Get(':id')

@@ -1,7 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ProvidersService } from 'src/providers/providers.service';
 import { CreateSaleDto } from './dto/create-sale.dto';
+import { QueryBuilderDto } from './dto/query-builder.dto';
 import { UpdateSaleDto } from './dto/update-sale.dto';
 
 @Injectable()
@@ -47,8 +48,38 @@ export class SalesService {
     return 'Payment with Success';
   }
 
-  findAll() {
-    return `This action returns all sales`;
+  async findAll(query: QueryBuilderDto) {
+    const provides = await this.prisma.sale.findMany({
+      orderBy: [{ createdAt: 'desc' }],
+      where: {
+        ...(query?.search && {
+          facture: { reference: { contains: query.search } },
+        }),
+        ...(query?.seller && { sale: { id: query.seller } }),
+      },
+      ...(query?.skip && query?.page && { skip: +query.skip * +query.page }),
+      ...(query?.skip && { take: +query.skip }),
+      include: {
+        facture: { include: { products: true } },
+        seller: true,
+      },
+    });
+
+    const count = await this.prisma.sale.count({
+      where: {
+        ...(query?.search && {
+          facture: { reference: { contains: query.search } },
+        }),
+        ...(query?.seller && { sale: { id: query.seller } }),
+      },
+    });
+
+    const meta = {
+      pages: Math.ceil(count / +query?.skip),
+      count,
+    };
+
+    return { data: { provides, meta } };
   }
 
   findOne(id: number) {

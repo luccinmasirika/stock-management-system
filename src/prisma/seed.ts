@@ -1,4 +1,4 @@
-import { PrismaClient, SaleStatus } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import * as bycrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
@@ -12,13 +12,13 @@ async function main() {
       facture: {
         amountDue: {
           gt: 0,
-        }
-      }
+        },
+      },
     },
     data: {
-      status: SaleStatus.PEN
-    }
-  })
+      status: 'PENDING',
+    },
+  });
   const superAdmin = await prisma.user.upsert({
     where: { email: 'Ebenezershop@gmail.com' },
     update: {},

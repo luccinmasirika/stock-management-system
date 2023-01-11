@@ -60,7 +60,7 @@ export class SalesService {
       ...(query?.skip && query?.page && { skip: +query.skip * +query.page }),
       ...(query?.skip && { take: +query.skip }),
       include: {
-        facture: { include: { products: true } },
+        facture: { include: { products: { include: {product: { include: {category: true} }} } } },
         seller: true,
       },
     });

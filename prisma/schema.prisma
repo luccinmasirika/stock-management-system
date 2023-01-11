@@ -37,6 +37,7 @@ enum ProductStatus {
 enum SaleStatus {
   FINISHED
   CANCELED
+  PENDING
 }
 
 model User {

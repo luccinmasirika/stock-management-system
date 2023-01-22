@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ProvidersService } from 'src/providers/providers.service';
 import { CreateSaleDto } from './dto/create-sale.dto';
@@ -14,15 +14,19 @@ export class SalesService {
   async create(createSaleDto: CreateSaleDto) {
     const { seller, products, ...rest } = createSaleDto;
 
-    let i: number = 0;
-    do {
-      await this.providerService.decrementStock(
+    for (let i = 0; i < products.length; i++) {
+      await this.providerService.checkIfOutOfStock(
         products[i]?.product,
         seller,
         products[i]?.quantity,
       );
-      i++;
-    } while (products.length > i);
+    }
+
+    await Promise.all(
+      products.map((el) => {
+        this.providerService.decrementStock(el?.product, seller, el?.quantity);
+      }),
+    );
 
     // create facture
     const facture = await this.prisma.facture.create({
@@ -53,14 +57,57 @@ export class SalesService {
       orderBy: [{ createdAt: 'desc' }],
       where: {
         ...(query?.search && {
-          facture: { reference: { contains: query.search } },
+          OR: [
+            {
+              facture: { reference: { contains: query.search } },
+            },
+            {
+              facture: {
+                products: {
+                  some: { product: { name: { contains: query.search } } },
+                },
+              },
+            },
+            {
+              facture: {
+                clientName: { contains: query.search },
+              },
+            },
+            {
+              seller: {
+                firstName: { contains: query.search },
+              }
+            },
+            {
+              seller: {
+                lastName: { contains: query.search },
+              }
+            },
+            {
+              facture: {
+                clientPhone: { contains: query.search },
+              },
+            },
+            {
+              seller: {
+                lastName: { contains: query.search },
+              },
+            },
+          ],
         }),
-        ...(query?.seller && { sale: { id: query.seller } }),
+        ...(query?.seller && { seller: { id: query.seller } }),
+        ...(query.status && {
+          facture: { amountDue: query.status === 'paid' ? 0 : { gt: 0 } },
+        }),
       },
       ...(query?.skip && query?.page && { skip: +query.skip * +query.page }),
       ...(query?.skip && { take: +query.skip }),
       include: {
-        facture: { include: { products: { include: {product: { include: {category: true} }} } } },
+        facture: {
+          include: {
+            products: { include: { product: { include: { category: true } } } },
+          },
+        },
         seller: true,
       },
     });
@@ -68,9 +115,48 @@ export class SalesService {
     const count = await this.prisma.sale.count({
       where: {
         ...(query?.search && {
-          facture: { reference: { contains: query.search } },
+          OR: [
+            {
+              facture: { reference: { contains: query.search } },
+            },
+            {
+              facture: {
+                products: {
+                  some: { product: { name: { contains: query.search } } },
+                },
+              },
+            },
+            {
+              facture: {
+                clientName: { contains: query.search },
+              },
+            },
+            {
+              seller: {
+                firstName: { contains: query.search },
+              }
+            },
+            {
+              seller: {
+                lastName: { contains: query.search },
+              }
+            },
+            {
+              facture: {
+                clientPhone: { contains: query.search },
+              },
+            },
+            {
+              seller: {
+                lastName: { contains: query.search },
+              },
+            },
+          ],
         }),
-        ...(query?.seller && { sale: { id: query.seller } }),
+        ...(query?.seller && { seller: { id: query.seller } }),
+        ...(query.status && {
+          facture: { amountDue: query.status === 'paid' ? 0 : { gt: 0 } },
+        }),
       },
     });
 
@@ -80,6 +166,41 @@ export class SalesService {
     };
 
     return { data: { sales, meta } };
+  }
+
+  async paye(id: string, amount: number) {
+    if (amount <= 0)  throw new BadRequestException('Le montant doit être supérieur à 0')
+
+    const facture = await this.prisma.facture.findUnique({
+      where: { id },
+      include: { products: true },
+    });
+
+    const { totalAmount, amountDue } = facture;
+
+    if (!facture) throw new BadRequestException('Facture not found');
+
+    if (facture.amountDue === 0) throw new BadRequestException('Facture already paid');
+
+    await this.prisma.facture.update({
+      where: { id },
+      data: {
+        amountPaid: amount > amountDue ? totalAmount : { increment: +amount },
+        amountDue: amount > amountDue ? 0 : { decrement: +amount },
+      },
+    });
+
+    return await this.prisma.sale.findFirst({
+      where: { factureId: id },
+      include: {
+        facture: {
+          include: {
+            products: { include: { product: { include: { category: true } } } },
+          },
+        },
+        seller: true,
+      },
+    });
   }
 
   findOne(id: number) {

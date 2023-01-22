@@ -7,18 +7,6 @@ async function hashPassword(pwd: string) {
 }
 
 async function main() {
-  await prisma.sale.updateMany({
-    where: {
-      facture: {
-        amountDue: {
-          gt: 0,
-        },
-      },
-    },
-    data: {
-      status: 'PENDING',
-    },
-  });
   const superAdmin = await prisma.user.upsert({
     where: { email: 'Ebenezershop@gmail.com' },
     update: {},

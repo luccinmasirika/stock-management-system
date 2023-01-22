@@ -1,19 +1,19 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
+  Get,
   InternalServerErrorException,
+  Param,
+  Patch,
+  Post,
   Query,
 } from '@nestjs/common';
-import { SalesService } from './sales.service';
-import { CreateSaleDto } from './dto/create-sale.dto';
-import { UpdateSaleDto } from './dto/update-sale.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { CreateSaleDto } from './dto/create-sale.dto';
 import { QueryBuilderDto } from './dto/query-builder.dto';
+import { UpdateSaleDto } from './dto/update-sale.dto';
+import { SalesService } from './sales.service';
 
 @ApiTags('Sales')
 @Controller('sales')
@@ -42,6 +42,11 @@ export class SalesController {
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateSaleDto: UpdateSaleDto) {
     return this.salesService.update(+id, updateSaleDto);
+  }
+
+  @Patch('pay/:id/:amount')
+  pay(@Param('id') id: string, @Param('amount') amount: number) {
+    return this.salesService.paye(id, amount);
   }
 
   @Delete(':id')

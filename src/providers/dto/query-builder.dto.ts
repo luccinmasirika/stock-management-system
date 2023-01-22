@@ -1,4 +1,4 @@
-import { AccountStatus } from '@prisma/client';
+import { ProvideStatus } from '@prisma/client';
 import { IsOptional, IsString } from 'class-validator';
 
 export class QueryBuilderDto {
@@ -8,7 +8,7 @@ export class QueryBuilderDto {
 
   @IsString()
   @IsOptional()
-  status: AccountStatus;
+  status: ProvideStatus;
 
   @IsString()
   @IsOptional()

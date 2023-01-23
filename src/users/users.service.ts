@@ -2,7 +2,7 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
-  NotFoundException,
+  NotFoundException
 } from '@nestjs/common';
 import { AccountStatus } from '@prisma/client';
 import * as bycrypt from 'bcryptjs';
@@ -85,6 +85,8 @@ export class UsersService {
     let provides = 0;
     let sales = 0;
     let stock = 0;
+    let beneficiary = 0;
+    let purchasedPrice = 0;
 
     interface Filters {
       createdAt?: {
@@ -142,6 +144,11 @@ export class UsersService {
             products: {
               select: {
                 quantity: true,
+                product: {
+                  select: {
+                    purchasedPrice: true,
+                  }
+                }
               },
             },
           },
@@ -179,6 +186,7 @@ export class UsersService {
       amountPaid += el.facture.amountPaid;
       el.facture.products.forEach((el) => {
         sales += el.quantity;
+        purchasedPrice += el.quantity * el.product.purchasedPrice;
       });
     });
 
@@ -189,6 +197,7 @@ export class UsersService {
       provides,
       sales,
       stock,
+      beneficiary: totalAmount - purchasedPrice,
     };
   }
 

@@ -2,7 +2,7 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
-  NotFoundException
+  NotFoundException,
 } from '@nestjs/common';
 import { AccountStatus } from '@prisma/client';
 import * as bycrypt from 'bcryptjs';
@@ -35,15 +35,15 @@ export class UsersService {
   }
 
   async editUser(id: string, updateUserDto: UpdateUserDto) {
-    const { role, status, ...update } = updateUserDto;
+    const { role, status, password, ...update } = updateUserDto;
     return await this.prisma.user.update({
       where: { id },
       data: {
         ...update,
         ...(role && { role }),
         ...(status && { status }),
-        ...(updateUserDto.password && {
-          password: await this.hashPassword(updateUserDto.password),
+        ...(password && {
+          password: await this.hashPassword(password),
         }),
       },
     });
@@ -75,48 +75,29 @@ export class UsersService {
     return test;
   }
 
-  async getUserInventory(
-    userId: string,
-    period?: 'daily' | 'weekly' | 'monthly' | 'yearly',
-  ) {
+  async getUserInventory(userId: string, startDate: Date, endDate: Date) {
     let totalAmount = 0;
     let amountDue = 0;
     let amountPaid = 0;
     let provides = 0;
     let sales = 0;
     let stock = 0;
-    let beneficiary = 0;
     let purchasedPrice = 0;
 
     interface Filters {
       createdAt?: {
         gte: Date;
+        lte: Date;
       };
     }
 
     const filters: Filters = {};
 
-    switch (period) {
-      case 'daily':
-        filters.createdAt = {
-          gte: new Date(new Date().setHours(0, 0, 0, 0)),
-        };
-        break;
-      case 'weekly':
-        filters.createdAt = {
-          gte: new Date(new Date().setDate(new Date().getDate() - 7)),
-        };
-        break;
-      case 'monthly':
-        filters.createdAt = {
-          gte: new Date(new Date().setDate(new Date().getDate() - 30)),
-        };
-        break;
-      case 'yearly':
-        filters.createdAt = {
-          gte: new Date(new Date().setDate(new Date().getDate() - 365)),
-        };
-        break;
+    if (startDate && endDate) {
+      filters.createdAt = {
+        gte: startDate,
+        lte: endDate,
+      };
     }
 
     const getProvides = this.prisma.provide.findMany({
@@ -147,8 +128,8 @@ export class UsersService {
                 product: {
                   select: {
                     purchasedPrice: true,
-                  }
-                }
+                  },
+                },
               },
             },
           },
@@ -203,9 +184,10 @@ export class UsersService {
 
   async getUserInventoryAll(
     userId: string,
-    period?: 'daily' | 'weekly' | 'monthly' | 'yearly',
     search?: string,
     page?: number,
+    startDate?: Date,
+    endDate?: Date,
   ) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -230,7 +212,11 @@ export class UsersService {
 
     const data = await Promise.all(
       users.map(async (user) => {
-        const inventory = await this.getUserInventory(user.id, period);
+        const inventory = await this.getUserInventory(
+          user.id,
+          startDate,
+          endDate,
+        );
         return { ...user, ...inventory };
       }),
     );
@@ -240,7 +226,7 @@ export class UsersService {
         meta: {
           count: data.length,
         },
-        inventory: data.slice(page * 10, page * 10 + 10),
+        inventory: page ? data.slice(page * 10, page * 10 + 10) : data,
       },
     };
   }

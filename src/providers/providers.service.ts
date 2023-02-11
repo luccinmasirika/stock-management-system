@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadGatewayException,
+  BadRequestException,
+  Injectable,
+} from '@nestjs/common';
 import { ProvideStatus } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateProviderDto } from './dto/create-provider.dto';
@@ -11,6 +15,11 @@ export class ProvidersService {
   async provide(createProviderDto: CreateProviderDto) {
     const { product, quantity, recipient, provider, description } =
       createProviderDto;
+
+    if (!recipient) {
+      throw new BadGatewayException('Vous devez sélectionner le bénéficiaire');
+    }
+
     const userProvide = await this.decrementStock(product, provider, quantity);
     await this.provideReport(
       product,
@@ -64,12 +73,25 @@ export class ProvidersService {
   }
 
   async findAll(query: QueryBuilderDto) {
+    function getDateRange(startDate: string, endDate: string) {
+      const startOfDay = new Date(startDate).setHours(0, 0, 0, 0);
+      const endOfDay = new Date(endDate).setHours(23, 59, 59, 999);
+      return {
+        gte: new Date(startOfDay),
+        lte: new Date(endOfDay),
+      };
+    }
+
     const provides = await this.prisma.provide.findMany({
       orderBy: [{ createdAt: 'desc' }],
       where: {
         ...(query?.category && {
           product: { category: { id: query.category } },
         }),
+        ...(query.startDate &&
+          query?.endDate && {
+            createdAt: getDateRange(query?.startDate, query?.endDate),
+          }),
         ...(query?.search && {
           OR: [
             { product: { name: { contains: query.search } } },
@@ -83,6 +105,12 @@ export class ProvidersService {
         }),
         ...(query?.provider && { provider: { id: query.provider } }),
         ...(query?.recipient && { recipient: { id: query.recipient } }),
+        ...(query?.seller && {
+          OR: [
+            { recipient: { id: query.seller } },
+            { provider: { id: query.seller } },
+          ],
+        }),
         ...(query?.status && { status: query.status }),
       },
       ...(query?.skip && query?.page && { skip: +query.skip * +query.page }),
@@ -99,6 +127,10 @@ export class ProvidersService {
         ...(query?.category && {
           product: { category: { id: query.category } },
         }),
+        ...(query.startDate &&
+          query?.endDate && {
+            createdAt: getDateRange(query?.startDate, query?.endDate),
+          }),
         ...(query?.search && {
           OR: [
             { product: { name: { contains: query.search } } },

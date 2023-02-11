@@ -4,7 +4,15 @@ import { IsOptional, IsString } from 'class-validator';
 export class QueryBuilderDto {
   @IsString()
   @IsOptional()
-  date: string;
+  startDate: string;
+
+  @IsString()
+  @IsOptional()
+  endDate: string;
+
+  @IsString()
+  @IsOptional()
+  seller: string;
 
   @IsString()
   @IsOptional()

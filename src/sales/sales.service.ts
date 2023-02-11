@@ -53,55 +53,67 @@ export class SalesService {
   }
 
   async findAll(query: QueryBuilderDto) {
+    function getDateRange(startDate: string, endDate: string) {
+      const startOfDay = new Date(startDate).setHours(0, 0, 0, 0);
+      const endOfDay = new Date(endDate).setHours(23, 59, 59, 999);
+      return {
+        gte: new Date(startOfDay),
+        lte: new Date(endOfDay),
+      };
+    }
+
+    function buildWhereClause(query: QueryBuilderDto) {
+      let whereClause: any = {};
+      const { search, seller, status, category, startDate, endDate } = query;
+      if (search) {
+        whereClause.OR = [
+          { facture: { reference: { contains: search } } },
+          {
+            facture: {
+              products: {
+                some: { product: { name: { contains: search } } },
+              },
+            },
+          },
+          { facture: { clientName: { contains: search } } },
+          { seller: { firstName: { contains: search } } },
+          { seller: { lastName: { contains: search } } },
+          { facture: { clientPhone: { contains: search } } },
+          { seller: { lastName: { contains: search } } },
+        ];
+      }
+      if (seller) {
+        whereClause.seller = { id: seller };
+      }
+      if (status) {
+        whereClause.facture = {
+          ...whereClause.facture,
+          amountDue: status === 'paid' ? 0 : { gt: 0 },
+        };
+      }
+      if (category) {
+        whereClause.facture = {
+          ...whereClause.facture,
+          products: {
+            some: { product: { category: { id: category } } },
+          },
+        };
+      }
+
+      if (startDate && endDate) {
+        whereClause.createdAt = getDateRange(startDate, endDate);
+      }
+
+      return whereClause;
+    }
+
+    const whereClause = buildWhereClause(query);
+    const { skip, page } = query;
     const sales = await this.prisma.sale.findMany({
       orderBy: [{ createdAt: 'desc' }],
-      where: {
-        ...(query?.search && {
-          OR: [
-            {
-              facture: { reference: { contains: query.search } },
-            },
-            {
-              facture: {
-                products: {
-                  some: { product: { name: { contains: query.search } } },
-                },
-              },
-            },
-            {
-              facture: {
-                clientName: { contains: query.search },
-              },
-            },
-            {
-              seller: {
-                firstName: { contains: query.search },
-              }
-            },
-            {
-              seller: {
-                lastName: { contains: query.search },
-              }
-            },
-            {
-              facture: {
-                clientPhone: { contains: query.search },
-              },
-            },
-            {
-              seller: {
-                lastName: { contains: query.search },
-              },
-            },
-          ],
-        }),
-        ...(query?.seller && { seller: { id: query.seller } }),
-        ...(query.status && {
-          facture: { amountDue: query.status === 'paid' ? 0 : { gt: 0 } },
-        }),
-      },
-      ...(query?.skip && query?.page && { skip: +query.skip * +query.page }),
-      ...(query?.skip && { take: +query.skip }),
+      where: whereClause,
+      skip: skip && page && +query.skip * +query.page,
+      take: skip && +query.skip,
       include: {
         facture: {
           include: {
@@ -112,64 +124,23 @@ export class SalesService {
       },
     });
 
-    const count = await this.prisma.sale.count({
-      where: {
-        ...(query?.search && {
-          OR: [
-            {
-              facture: { reference: { contains: query.search } },
-            },
-            {
-              facture: {
-                products: {
-                  some: { product: { name: { contains: query.search } } },
-                },
-              },
-            },
-            {
-              facture: {
-                clientName: { contains: query.search },
-              },
-            },
-            {
-              seller: {
-                firstName: { contains: query.search },
-              }
-            },
-            {
-              seller: {
-                lastName: { contains: query.search },
-              }
-            },
-            {
-              facture: {
-                clientPhone: { contains: query.search },
-              },
-            },
-            {
-              seller: {
-                lastName: { contains: query.search },
-              },
-            },
-          ],
-        }),
-        ...(query?.seller && { seller: { id: query.seller } }),
-        ...(query.status && {
-          facture: { amountDue: query.status === 'paid' ? 0 : { gt: 0 } },
-        }),
-      },
-    });
-
-    const meta = {
-      pages: Math.ceil(count / +query?.skip),
-      count,
-    };
+    let meta = null;
+    if (skip) {
+      const count = await this.prisma.sale.count({
+        where: whereClause,
+      });
+      meta = {
+        pages: Math.ceil(count / +skip),
+        count,
+      };
+    }
 
     return { data: { sales, meta } };
   }
 
   async paye(id: string, amount: number) {
-    if (amount <= 0)  throw new BadRequestException('Le montant doit être supérieur à 0')
+    if (amount <= 0)
+      throw new BadRequestException('Le montant doit être supérieur à 0');
 
     const facture = await this.prisma.facture.findUnique({
       where: { id },
@@ -180,7 +151,8 @@ export class SalesService {
 
     if (!facture) throw new BadRequestException('Facture not found');
 
-    if (facture.amountDue === 0) throw new BadRequestException('Facture already paid');
+    if (facture.amountDue === 0)
+      throw new BadRequestException('Facture already paid');
 
     await this.prisma.facture.update({
       where: { id },

@@ -35,19 +35,27 @@ export class UsersController {
   @Get('get/inventory')
   async getUserInventory(
     @Query('userId') userId: string,
-    @Query('period') period: 'daily' | 'weekly' | 'monthly' | 'yearly',
+    @Query('startDate') startDate: Date,
+    @Query('endDate') endDate: Date,
   ) {
-    return this.usersService.getUserInventory(userId, period);
+    return this.usersService.getUserInventory(userId, startDate, endDate);
   }
 
   @Get('get/inventory/all')
   async getUserInventoryAll(
     @Query('userId') userId: string,
-    @Query('period') period: 'daily' | 'weekly' | 'monthly' | 'yearly',
+    @Query('startDate') startDate: Date,
+    @Query('endDate') endDate: Date,
     @Query('search') search: string,
     @Query('page') page: number,
   ) {
-    return this.usersService.getUserInventoryAll(userId, period, search, +page);
+    return this.usersService.getUserInventoryAll(
+      userId,
+      search,
+      +page,
+      startDate,
+      endDate,
+    );
   }
 
   @Get()

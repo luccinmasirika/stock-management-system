@@ -3,11 +3,19 @@ import { IsOptional, IsString } from 'class-validator';
 export class QueryBuilderDto {
   @IsString()
   @IsOptional()
-  date: string;
+  startDate: string;
+
+  @IsString()
+  @IsOptional()
+  endDate: string;
 
   @IsString()
   @IsOptional()
   status: 'paid' | 'pending';
+
+  @IsString()
+  @IsOptional()
+  category: string;
 
   @IsString()
   @IsOptional()

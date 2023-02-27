@@ -137,28 +137,37 @@ export class SalesService {
 
     return { data: { sales, meta } };
   }
-
   async paye(id: string, amount: number) {
-    if (amount <= 0)
+    if (amount <= 0) {
       throw new BadRequestException('Le montant doit être supérieur à 0');
+    }
 
     const facture = await this.prisma.facture.findUnique({
       where: { id },
       include: { products: true },
     });
 
-    const { totalAmount, amountDue } = facture;
+    if (!facture) {
+      throw new BadRequestException("La facture n'existe pas");
+    }
 
-    if (!facture) throw new BadRequestException('Facture not found');
+    if (facture.amountDue === 0) {
+      throw new BadRequestException('Facture déjà payée');
+    }
 
-    if (facture.amountDue === 0)
-      throw new BadRequestException('Facture already paid');
+    if (amount > facture.amountDue) {
+      throw new BadRequestException(
+        'Le montant payé ne peut pas dépasser le solde de la facture',
+      );
+    }
+
+    const newAmountDue = facture.amountDue - amount;
 
     await this.prisma.facture.update({
       where: { id },
       data: {
-        amountPaid: amount > amountDue ? totalAmount : { increment: +amount },
-        amountDue: amount > amountDue ? 0 : { decrement: +amount },
+        amountPaid: { increment: +amount },
+        amountDue: newAmountDue,
       },
     });
 

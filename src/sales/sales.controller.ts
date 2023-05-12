@@ -46,7 +46,7 @@ export class SalesController {
 
   @Patch('pay/:id/:amount')
   pay(@Param('id') id: string, @Param('amount') amount: number) {
-    return this.salesService.paye(id, amount);
+    return this.salesService.paye(id, +amount);
   }
 
   @Delete(':id')

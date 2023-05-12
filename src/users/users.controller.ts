@@ -37,8 +37,10 @@ export class UsersController {
     @Query('userId') userId: string,
     @Query('startDate') startDate: Date,
     @Query('endDate') endDate: Date,
+    @Query('search') search: string,
+    @Query('category') category: string,
   ) {
-    return this.usersService.getUserInventory(userId, startDate, endDate);
+    return this.usersService.getUserInventory(userId, startDate, endDate, category, search);
   }
 
   @Get('get/inventory/all')
@@ -47,7 +49,9 @@ export class UsersController {
     @Query('startDate') startDate: Date,
     @Query('endDate') endDate: Date,
     @Query('search') search: string,
+    @Query('category') category: string,
     @Query('page') page: number,
+    @Query('one') one: boolean,
   ) {
     return this.usersService.getUserInventoryAll(
       userId,
@@ -55,6 +59,8 @@ export class UsersController {
       +page,
       startDate,
       endDate,
+      category,
+      one,
     );
   }
 

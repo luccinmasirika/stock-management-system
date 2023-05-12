@@ -75,7 +75,13 @@ export class UsersService {
     return test;
   }
 
-  async getUserInventory(userId: string, startDate: Date, endDate: Date) {
+  async getUserInventory(
+    userId: string,
+    startDate: Date,
+    endDate: Date,
+    category: string,
+    search: string,
+  ) {
     let totalAmount = 0;
     let amountDue = 0;
     let amountPaid = 0;
@@ -83,12 +89,16 @@ export class UsersService {
     let sales = 0;
     let stock = 0;
     let purchasedPrice = 0;
+    let pa = 0;
+    let pv = 0;
 
     interface Filters {
       createdAt?: {
         gte: Date;
         lte: Date;
       };
+      product?: any;
+      search?: any;
     }
 
     const filters: Filters = {};
@@ -100,20 +110,50 @@ export class UsersService {
       };
     }
 
+    if (search) {
+      filters.search = {
+        product: {
+          name: {
+            contains: search,
+          },
+        },
+      };
+    }
+
     const getProvides = this.prisma.provide.findMany({
       where: {
         ...filters,
+        ...(category && { product: { category: { id: category } } }),
         recipientId: userId,
         status: 'ACCEPTED',
       },
       select: {
         quantity: true,
+        product: {
+          select: {
+            purchasedPrice: true,
+            sellingPrice: true,
+          },
+        },
       },
     });
 
     const getSales = this.prisma.sale.findMany({
       where: {
         ...filters,
+        ...(category && {
+          facture: {
+            products: {
+              some: {
+                product: {
+                  category: {
+                    id: category,
+                  },
+                },
+              },
+            },
+          },
+        }),
         userId,
       },
       select: {
@@ -140,6 +180,7 @@ export class UsersService {
     const getStocks = this.prisma.myProduct.findMany({
       where: {
         ...filters,
+        ...(category && { product: { category: { id: category } } }),
         userId,
       },
       select: {
@@ -161,6 +202,11 @@ export class UsersService {
       stock += el.stock;
     });
 
+    providesData.forEach((el) => {
+      pv += el.quantity * el.product.sellingPrice;
+      pa += el.quantity * el.product.purchasedPrice;
+    });
+
     salesData.forEach((el) => {
       totalAmount += el.facture.totalAmount;
       amountDue += el.facture.amountDue;
@@ -179,6 +225,9 @@ export class UsersService {
       sales,
       stock,
       beneficiary: totalAmount - purchasedPrice,
+      profit: pv - pa,
+      pa,
+      pv,
     };
   }
 
@@ -188,20 +237,39 @@ export class UsersService {
     page?: number,
     startDate?: Date,
     endDate?: Date,
+    category?: string,
+    one?: boolean,
   ) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-    });
-
-    if (!user) throw new NotFoundException('Utilisateur introuvable');
-    if (user.role === 'SELLER') throw new ForbiddenException('Accès interdit');
-
     const searchUser = {
       OR: [
         { firstName: { contains: search } },
         { lastName: { contains: search } },
       ],
     };
+
+    if (one) {
+      const inventory = await this.getUserInventory(
+        userId,
+        startDate,
+        endDate,
+        category,
+        search,
+      );
+
+      return {
+        data: {
+          meta: null,
+          inventory: [inventory],
+        },
+      };
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) throw new NotFoundException('Utilisateur introuvable');
+    if (user.role === 'SELLER') throw new ForbiddenException('Accès interdit');
 
     const users = await this.prisma.user.findMany({
       where: {
@@ -216,6 +284,8 @@ export class UsersService {
           user.id,
           startDate,
           endDate,
+          category,
+          search,
         );
         return { ...user, ...inventory };
       }),

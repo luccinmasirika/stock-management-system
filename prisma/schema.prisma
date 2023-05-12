@@ -134,7 +134,8 @@ model Facture {
   amountDue   Float             @default(0)
   totalAmount Float             @default(0)
   products    FactureProducts[]
-  Sale        Sale[]
+  sale        Sale[]
+  payment     Payment[]
 
   @@index([id, reference])
   @@map("factures")
@@ -154,6 +155,32 @@ model FactureProducts {
 
   @@index([id, factureId, productId])
   @@map("facture_products")
+}
+
+model Payment {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  facture   Facture  @relation(fields: [factureId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  factureId String
+  amount    Float    @default(0)
+
+  @@index([id, factureId])
+  @@map("payments")
+}
+
+model ProviderSupply {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  description String?  // F. Jhonn
+  // nom
+  quantity    Int      @default(0) //  50
+  amount      Float    @default(0) // 1000
+  amountPaid  Float    @default(0) // 400
+  amountDue   Float    @default(0) // 600
+
+  @@map("provider_supplies")
 }
 
 model Sale {

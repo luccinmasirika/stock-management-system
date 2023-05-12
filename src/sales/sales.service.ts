@@ -118,6 +118,7 @@ export class SalesService {
         facture: {
           include: {
             products: { include: { product: { include: { category: true } } } },
+            payment: true,
           },
         },
         seller: true,
@@ -137,6 +138,7 @@ export class SalesService {
 
     return { data: { sales, meta } };
   }
+
   async paye(id: string, amount: number) {
     if (amount <= 0) {
       throw new BadRequestException('Le montant doit être supérieur à 0');
@@ -168,6 +170,11 @@ export class SalesService {
       data: {
         amountPaid: { increment: +amount },
         amountDue: newAmountDue,
+        payment: {
+          create: {
+            amount,
+          },
+        },
       },
     });
 

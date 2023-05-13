@@ -16,8 +16,14 @@ export class ProductsService {
   ) {}
 
   async create(createConfigurationDto: CreateProductDto) {
-    const { name, description, category, purchasedPrice, sellingPrice } =
-      createConfigurationDto;
+    const {
+      name,
+      description,
+      category,
+      purchasedPrice,
+      sellingPrice,
+      supplier,
+    } = createConfigurationDto;
     return await this.prisma.product.create({
       data: {
         name,
@@ -25,8 +31,9 @@ export class ProductsService {
         category: { connect: { id: category } },
         purchasedPrice,
         sellingPrice,
+        supplier: { connect: { id: supplier } },
       },
-      include: { category: true },
+      include: { category: true, supplier: true },
     });
   }
 
@@ -65,12 +72,13 @@ export class ProductsService {
   }
 
   async update(id: string, updateProductDto: UpdateProductDto) {
-    const { category } = updateProductDto;
+    const { category, supplier } = updateProductDto;
     return await this.prisma.product.update({
       where: { id },
       data: {
         ...updateProductDto,
         ...(category && { category: { connect: { id: category } } }),
+        ...(supplier && { supplier: { connect: { id: supplier } } }),
       },
       include: { category: true },
     });

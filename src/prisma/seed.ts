@@ -80,6 +80,7 @@ async function main() {
 
   const phonesData = [
     {
+      supplierId: 'cedric karungu',
       categoryId: 'Google Pixel',
       name: 'Google Pixel 6',
       description:
@@ -89,6 +90,7 @@ async function main() {
       stock: 8,
     },
     {
+      supplierId: 'cedric karungu',
       categoryId: 'Samsung Galaxy',
       name: 'Samsung Galaxy S21',
       description:
@@ -98,6 +100,7 @@ async function main() {
       stock: 12,
     },
     {
+      supplierId: 'cedric karungu',
       categoryId: 'iPhone',
       name: 'Apple iPhone 12',
       description:
@@ -107,6 +110,7 @@ async function main() {
       stock: 15,
     },
     {
+      supplierId: 'cedric karungu',
       categoryId: 'Huawei',
       name: 'Huawei P40 Pro',
       description:
@@ -116,6 +120,7 @@ async function main() {
       stock: 5,
     },
     {
+      supplierId: 'cedric karungu',
       categoryId: 'Xiaomi',
       name: 'Xiaomi Mi 11',
       description:
@@ -125,6 +130,7 @@ async function main() {
       stock: 20,
     },
     {
+      supplierId: 'cedric karungu',
       categoryId: 'OnePlus',
       name: 'OnePlus 9 Pro',
       description:
@@ -134,6 +140,7 @@ async function main() {
       stock: 10,
     },
     {
+      supplierId: 'cedric karungu',
       categoryId: 'Oppo',
       name: 'Oppo Find X3 Pro',
       description:
@@ -143,6 +150,7 @@ async function main() {
       stock: 6,
     },
     {
+      supplierId: 'cedric karungu',
       categoryId: 'Techno',
       name: 'Tecno Camon 17 Pro',
       description:
@@ -152,6 +160,7 @@ async function main() {
       stock: 18,
     },
     {
+      supplierId: 'cedric karungu',
       categoryId: 'Infinix',
       name: 'Infinix Note 11 Pro',
       description:
@@ -161,6 +170,18 @@ async function main() {
       stock: 10,
     },
   ];
+
+  const suppliers = [
+    {
+      name: 'cedric karungu',
+      tel: '2436364664',
+    },
+  ];
+
+  await prisma.supplier.createMany({
+    data: suppliers,
+    skipDuplicates: true,
+  });
 
   await prisma.category.createMany({
     data: categoriesData,
@@ -174,13 +195,25 @@ async function main() {
     },
   });
 
+  const suppliersId = await prisma.supplier.findMany({
+    select: {
+      id: true,
+      name: true,
+    },
+  });
+
   const phoneCategories = phonesData.map((phone) => {
     const category = categoriesId.find(
       (category) => category.name === phone.categoryId,
     );
+
+    const supplier = suppliersId.find(
+      (supplier) => supplier.name == phone.supplierId,
+    );
     return {
       ...phone,
       categoryId: category.id,
+      supplierId: supplier.id,
     };
   });
 

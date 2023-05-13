@@ -7,4 +7,4 @@ import { SupplierController } from './suppliers.controller';
   providers: [SupplierService],
   exports: [SupplierService],
 })
-export class CategoriesModule {}
+export class SuppliersModule {}

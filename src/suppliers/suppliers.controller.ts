@@ -11,6 +11,7 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { SupplierService } from './suppliers.service';
 import { CreateSupplierDto } from './dto/create-suppliers.dto';
+import { QueryBuilderDto } from './query-builder.dto';
 
 @ApiTags('Suppliers')
 @Controller('suppliers')
@@ -23,8 +24,8 @@ export class SupplierController {
   }
 
   @Get()
-  async findAll(@Query('search') search: string) {
-    return await this.supplier.findAll(search);
+  async findAll(@Query('_q') query: QueryBuilderDto) {
+    return await this.supplier.findAll(query);
   }
 
   @Get(':id')

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateSupplierDto } from './dto/create-suppliers.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
+import { QueryBuilderDto } from './query-builder.dto';
 
 @Injectable()
 export class SupplierService {
@@ -17,17 +18,29 @@ export class SupplierService {
     });
   }
 
-  async findAll(search?: string) {
-    return await this.prisma.supplier.findMany({
+  async findAll(query?: QueryBuilderDto) {
+    const suppliers = await this.prisma.supplier.findMany({
       orderBy: [{ createdAt: 'desc' }],
       where: {
-        ...(search && {
+        ...(query?.search && {
           name: {
-            contains: search,
+            contains: query?.search,
           },
         }),
       },
     });
+    const count = await this.prisma.supplier.count({
+      where: {
+        ...(query?.search && { name: { contains: query?.search } }),
+      },
+    });
+
+    const meta = {
+      pages: Math.ceil(count / +query?.skip),
+      count,
+    };
+
+    return { data: { suppliers, meta } };
   }
 
   async findOne(id: string) {

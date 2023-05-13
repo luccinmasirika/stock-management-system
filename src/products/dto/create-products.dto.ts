@@ -35,4 +35,11 @@ export class CreateProductDto {
     example: 'iPhone',
   })
   category: string;
+
+  @ApiProperty({
+    type: String,
+    format: 'string',
+    example: 'Cedric ',
+  })
+  supplier: string;
 }

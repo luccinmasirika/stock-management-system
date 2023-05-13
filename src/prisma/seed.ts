@@ -80,6 +80,7 @@ async function main() {
 
   const phonesData = [
     {
+      supplierId: 'hello world',
       categoryId: 'Google Pixel',
       name: 'Google Pixel 6',
       description:
@@ -89,6 +90,7 @@ async function main() {
       stock: 8,
     },
     {
+      supplierId: 'hello world',
       categoryId: 'Samsung Galaxy',
       name: 'Samsung Galaxy S21',
       description:
@@ -98,6 +100,7 @@ async function main() {
       stock: 12,
     },
     {
+      supplierId: 'hello world',
       categoryId: 'iPhone',
       name: 'Apple iPhone 12',
       description:
@@ -107,6 +110,7 @@ async function main() {
       stock: 15,
     },
     {
+      supplierId: 'hello world',
       categoryId: 'Huawei',
       name: 'Huawei P40 Pro',
       description:
@@ -116,6 +120,7 @@ async function main() {
       stock: 5,
     },
     {
+      supplierId: 'hello world',
       categoryId: 'Xiaomi',
       name: 'Xiaomi Mi 11',
       description:
@@ -125,6 +130,7 @@ async function main() {
       stock: 20,
     },
     {
+      supplierId: 'hello world',
       categoryId: 'OnePlus',
       name: 'OnePlus 9 Pro',
       description:
@@ -134,6 +140,7 @@ async function main() {
       stock: 10,
     },
     {
+      supplierId: 'hello world',
       categoryId: 'Oppo',
       name: 'Oppo Find X3 Pro',
       description:
@@ -143,6 +150,7 @@ async function main() {
       stock: 6,
     },
     {
+      supplierId: 'hello world',
       categoryId: 'Techno',
       name: 'Tecno Camon 17 Pro',
       description:
@@ -152,6 +160,7 @@ async function main() {
       stock: 18,
     },
     {
+      supplierId: 'hello world',
       categoryId: 'Infinix',
       name: 'Infinix Note 11 Pro',
       description:

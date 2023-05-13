@@ -87,6 +87,8 @@ model Product {
   provides        Provide[]
   MyProduct       MyProduct[]
   FactureProducts FactureProducts[]
+  supplierId      String
+  supplier        Supplier          @relation(fields: [supplierId], references: [id])
 
   @@index([id])
   @@map("products")
@@ -173,7 +175,7 @@ model ProviderSupply {
   id          String   @id @default(cuid())
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  description String?  // F. Jhonn
+  description String? // F. Jhonn
   // nom
   quantity    Int      @default(0) //  50
   amount      Float    @default(0) // 1000
@@ -224,4 +226,16 @@ model Files {
   users     User[]
 
   @@map("files")
+}
+
+model Supplier {
+  id        String    @id @default(cuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  name      String
+  tel       String?
+  Products  Product[]
+
+  @@index([id])
+  @@map("suppliers")
 }

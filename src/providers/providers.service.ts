@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadGatewayException,
+  BadRequestException,
+  Injectable,
+} from '@nestjs/common';
 import { ProvideStatus } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateProviderDto } from './dto/create-provider.dto';
@@ -11,6 +15,11 @@ export class ProvidersService {
   async provide(createProviderDto: CreateProviderDto) {
     const { product, quantity, recipient, provider, description } =
       createProviderDto;
+
+    if (!recipient) {
+      throw new BadGatewayException('Vous devez sélectionner le bénéficiaire');
+    }
+
     const userProvide = await this.decrementStock(product, provider, quantity);
     await this.provideReport(
       product,
@@ -64,15 +73,45 @@ export class ProvidersService {
   }
 
   async findAll(query: QueryBuilderDto) {
+    function getDateRange(startDate: string, endDate: string) {
+      const startOfDay = new Date(startDate).setHours(0, 0, 0, 0);
+      const endOfDay = new Date(endDate).setHours(23, 59, 59, 999);
+      return {
+        gte: new Date(startOfDay),
+        lte: new Date(endOfDay),
+      };
+    }
+
     const provides = await this.prisma.provide.findMany({
       orderBy: [{ createdAt: 'desc' }],
       where: {
         ...(query?.category && {
           product: { category: { id: query.category } },
         }),
-        ...(query?.search && { product: { name: { contains: query.search } } }),
+        ...(query.startDate &&
+          query?.endDate && {
+            createdAt: getDateRange(query?.startDate, query?.endDate),
+          }),
+        ...(query?.search && {
+          OR: [
+            { product: { name: { contains: query.search } } },
+            { product: { description: { contains: query.search } } },
+            { product: { category: { name: { contains: query.search } } } },
+            // { provider: { firstName: { contains: query.search } } },
+            // { provider: { lastName: { contains: query.search } } },
+            { recipient: { firstName: { contains: query.search } } },
+            { recipient: { lastName: { contains: query.search } } },
+          ],
+        }),
         ...(query?.provider && { provider: { id: query.provider } }),
         ...(query?.recipient && { recipient: { id: query.recipient } }),
+        ...(query?.seller && {
+          OR: [
+            { recipient: { id: query.seller } },
+            { provider: { id: query.seller } },
+          ],
+        }),
+        ...(query?.status && { status: query.status }),
       },
       ...(query?.skip && query?.page && { skip: +query.skip * +query.page }),
       ...(query?.skip && { take: +query.skip }),
@@ -88,9 +127,24 @@ export class ProvidersService {
         ...(query?.category && {
           product: { category: { id: query.category } },
         }),
-        ...(query?.search && { product: { name: { contains: query.search } } }),
+        ...(query.startDate &&
+          query?.endDate && {
+            createdAt: getDateRange(query?.startDate, query?.endDate),
+          }),
+        ...(query?.search && {
+          OR: [
+            { product: { name: { contains: query.search } } },
+            { product: { description: { contains: query.search } } },
+            { product: { category: { name: { contains: query.search } } } },
+            // { provider: { firstName: { contains: query.search } } },
+            // { provider: { lastName: { contains: query.search } } },
+            { recipient: { firstName: { contains: query.search } } },
+            { recipient: { lastName: { contains: query.search } } },
+          ],
+        }),
         ...(query?.provider && { provider: { id: query.provider } }),
         ...(query?.recipient && { recipient: { id: query.recipient } }),
+        ...(query?.status && { status: query.status }),
       },
     });
 
@@ -111,7 +165,9 @@ export class ProvidersService {
         }),
         ...(query?.search && { product: { name: { contains: query.search } } }),
         ...(query?.provider && { provider: { id: query.provider } }),
-        OR: [{ recipient: { id: userId } }, { provider: { id: userId } }],
+        ...(userId !== 'all' && {
+          OR: [{ recipient: { id: userId } }, { provider: { id: userId } }],
+        }),
         status: 'PENDING',
       },
       ...(query?.skip && query?.page && { skip: +query.skip * +query.page }),
@@ -130,7 +186,9 @@ export class ProvidersService {
         }),
         ...(query?.search && { product: { name: { contains: query.search } } }),
         ...(query?.provider && { provider: { id: query.provider } }),
-        recipient: { id: userId },
+        ...(userId !== 'all' && {
+          OR: [{ recipient: { id: userId } }, { provider: { id: userId } }],
+        }),
         status: 'PENDING',
       },
     });
@@ -165,6 +223,13 @@ export class ProvidersService {
 
   async increaseStock(productId: string, userId: string, quantity: number) {
     const product = await this.findProductUser({ productId, userId });
+
+    if (quantity < 1) {
+      throw new BadRequestException(
+        `Vous devez entrer une quantité supérieure à 0 pour: ${product.product.name}`,
+      );
+    }
+
     if (product) {
       return await this.prisma.myProduct.update({
         where: { id: product.id },
@@ -186,16 +251,28 @@ export class ProvidersService {
   async decrementStock(productId: string, userId: string, quantity: number) {
     const product = await this.findProductUser({ productId, userId });
 
-    if (product.stock < quantity) {
-      throw new BadRequestException(
-        `Vous n'avez pas assez de: ${product.product.name}`,
-      );
-    }
+    await this.checkIfOutOfStock(productId, userId, quantity);
 
     return await this.prisma.myProduct.update({
       where: { id: product.id },
       include: { product: { include: { category: true } } },
       data: { stock: { decrement: quantity } },
     });
+  }
+
+  async checkIfOutOfStock(productId: string, userId: string, quantity: number) {
+    const product = await this.findProductUser({ productId, userId });
+
+    if (quantity < 1) {
+      throw new BadRequestException(
+        `Vous devez entrer une quantité supérieure à 0 pour: ${product.product.name}`,
+      );
+    }
+
+    if (product.stock < quantity) {
+      throw new BadRequestException(
+        `Vous n'avez pas assez de: ${product.product.name}`,
+      );
+    }
   }
 }

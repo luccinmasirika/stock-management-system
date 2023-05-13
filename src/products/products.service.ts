@@ -121,7 +121,9 @@ export class ProductsService {
       orderBy: [{ createdAt: 'desc' }],
       where: {
         user: { id: userId },
-        ...(query?.category && { category: { id: query.category } }),
+        ...(query?.category && {
+          product: { category: { id: query.category } },
+        }),
         ...(query?.search && { product: { name: { contains: query.search } } }),
       },
       ...(query?.skip && query?.page && { skip: +query.skip * +query.page }),
@@ -132,7 +134,9 @@ export class ProductsService {
     const count = await this.prisma.myProduct.count({
       where: {
         user: { id: userId },
-        ...(query?.category && { category: { id: query.category } }),
+        ...(query?.category && {
+          product: { category: { id: query.category } },
+        }),
         ...(query?.search && { product: { name: { contains: query.search } } }),
       },
     });

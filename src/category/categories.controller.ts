@@ -6,10 +6,11 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { CreateCategoryDto } from './dto/create-categories.dto';
 import { CategoriesService } from './categories.service';
+import { CreateCategoryDto } from './dto/create-categories.dto';
 
 @ApiTags('Categories')
 @Controller('categories')
@@ -22,8 +23,8 @@ export class CategoriesController {
   }
 
   @Get()
-  async findAll() {
-    return await this.category.findAll();
+  async findAll(@Query('search') search: string) {
+    return await this.category.findAll(search);
   }
 
   @Get(':id')

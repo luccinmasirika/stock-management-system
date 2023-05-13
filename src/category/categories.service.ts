@@ -17,9 +17,16 @@ export class CategoriesService {
     });
   }
 
-  async findAll() {
+  async findAll(search?: string) {
     return await this.prisma.category.findMany({
       orderBy: [{ createdAt: 'desc' }],
+      where: {
+        ...(search && {
+          name: {
+            contains: search,
+          },
+        }),
+      },
     });
   }
 

@@ -1,14 +1,22 @@
-import { AccountStatus } from '@prisma/client';
+import { ProvideStatus } from '@prisma/client';
 import { IsOptional, IsString } from 'class-validator';
 
 export class QueryBuilderDto {
   @IsString()
   @IsOptional()
-  date: string;
+  startDate: string;
 
   @IsString()
   @IsOptional()
-  status: AccountStatus;
+  endDate: string;
+
+  @IsString()
+  @IsOptional()
+  seller: string;
+
+  @IsString()
+  @IsOptional()
+  status: ProvideStatus;
 
   @IsString()
   @IsOptional()

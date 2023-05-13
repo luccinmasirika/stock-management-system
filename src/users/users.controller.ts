@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AccountStatus } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -22,6 +30,38 @@ export class UsersController {
   @Get(':id/profile')
   async getUser(@Param('id') id: string) {
     return this.usersService.findOneById(id);
+  }
+
+  @Get('get/inventory')
+  async getUserInventory(
+    @Query('userId') userId: string,
+    @Query('startDate') startDate: Date,
+    @Query('endDate') endDate: Date,
+    @Query('search') search: string,
+    @Query('category') category: string,
+  ) {
+    return this.usersService.getUserInventory(userId, startDate, endDate, category, search);
+  }
+
+  @Get('get/inventory/all')
+  async getUserInventoryAll(
+    @Query('userId') userId: string,
+    @Query('startDate') startDate: Date,
+    @Query('endDate') endDate: Date,
+    @Query('search') search: string,
+    @Query('category') category: string,
+    @Query('page') page: number,
+    @Query('one') one: boolean,
+  ) {
+    return this.usersService.getUserInventoryAll(
+      userId,
+      search,
+      +page,
+      startDate,
+      endDate,
+      category,
+      one,
+    );
   }
 
   @Get()

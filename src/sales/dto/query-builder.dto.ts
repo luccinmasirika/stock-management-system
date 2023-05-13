@@ -1,14 +1,21 @@
-import { AccountStatus, SaleStatus } from '@prisma/client';
 import { IsOptional, IsString } from 'class-validator';
 
 export class QueryBuilderDto {
   @IsString()
   @IsOptional()
-  date: string;
+  startDate: string;
 
   @IsString()
   @IsOptional()
-  status: SaleStatus;
+  endDate: string;
+
+  @IsString()
+  @IsOptional()
+  status: 'paid' | 'pending';
+
+  @IsString()
+  @IsOptional()
+  category: string;
 
   @IsString()
   @IsOptional()
@@ -17,7 +24,7 @@ export class QueryBuilderDto {
   @IsString()
   @IsOptional()
   facture: string;
-  
+
   @IsString()
   @IsOptional()
   search: string;

@@ -46,7 +46,7 @@ export class ProvidersService {
   }
 
   async updateProvideStatus(provideId: string, status: ProvideStatus) {
-    return await this.prisma.provide.update({
+    return this.prisma.provide.update({
       where: { id: provideId },
       data: { status },
     });
@@ -202,7 +202,7 @@ export class ProvidersService {
   }
 
   async findOne(id: string) {
-    return await this.prisma.provide.findUnique({ where: { id } });
+    return this.prisma.provide.findUnique({ where: { id } });
   }
 
   async findProductUser({
@@ -212,7 +212,7 @@ export class ProvidersService {
     productId: string;
     userId: string;
   }) {
-    return await this.prisma.myProduct.findFirst({
+    return this.prisma.myProduct.findFirst({
       where: {
         product: { id: productId },
         user: { id: userId },
@@ -231,14 +231,14 @@ export class ProvidersService {
     }
 
     if (product) {
-      return await this.prisma.myProduct.update({
+      return this.prisma.myProduct.update({
         where: { id: product.id },
         data: { stock: { increment: quantity } },
         include: { product: true },
       });
     }
 
-    return await this.prisma.myProduct.create({
+    return this.prisma.myProduct.create({
       data: {
         stock: quantity,
         product: { connect: { id: productId } },
@@ -253,7 +253,7 @@ export class ProvidersService {
 
     await this.checkIfOutOfStock(productId, userId, quantity);
 
-    return await this.prisma.myProduct.update({
+    return this.prisma.myProduct.update({
       where: { id: product.id },
       include: { product: { include: { category: true } } },
       data: { stock: { decrement: quantity } },

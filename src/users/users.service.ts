@@ -301,18 +301,91 @@ export class UsersService {
     };
   }
 
-  async hashPassword(pwd: string) {
+  async getEstimations({
+    id,
+    search,
+    category,
+  }: {
+    id: string;
+    search?: string;
+    category?: string;
+  }) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+    });
+
+    console.log('category', category);
+
+    if (!user) throw new NotFoundException('Utilisateur introuvable');
+    if (user.role === 'SELLER') throw new ForbiddenException('Accès interdit');
+
+    let query = {};
+
+    if (search) {
+      query = {
+        OR: [
+          { user: { firstName: { contains: search } } },
+          { user: { lastName: { contains: search } } },
+        ],
+      };
+    }
+
+    if (category) {
+      query = {
+        ...query,
+        product: { category: { id: category } },
+      };
+    }
+
+    const products = await this.prisma.myProduct.findMany({
+      where: {
+        userId: id,
+        ...query,
+      },
+      include: {
+        product: {
+          include: {
+            category: true,
+          },
+        },
+      },
+    });
+
+    const getPurchasedPrice = products.reduce(
+      (acc, el) => acc + el.stock * el.product.purchasedPrice,
+      0,
+    );
+
+    const getSellingPrice = products.reduce(
+      (acc, el) => acc + el.stock * el.product.sellingPrice,
+      0,
+    );
+
+    const getStock = products.reduce((acc, el) => acc + el.stock, 0);
+
+    return {
+      data: {
+        estimations: {
+          purchasedPrice: getPurchasedPrice,
+          sellingPrice: getSellingPrice,
+          stock: getStock,
+        },
+      },
+    };
+  }
+
+  private async hashPassword(pwd: string) {
     return await bycrypt.hash(pwd, 10);
   }
 
   async accountStatus(id: string, data: { status: AccountStatus }) {
-    return await this.prisma.user.update({
+    return this.prisma.user.update({
       where: { id },
       data: { status: data.status },
     });
   }
 
-  async checkIfEmailIsNotUsed(email: string) {
+  private async checkIfEmailIsNotUsed(email: string) {
     const isExistingUser = await this.prisma.user.findUnique({
       where: { email },
     });

@@ -150,7 +150,7 @@ export class ProductsService {
   }
 
   async disable(id: string) {
-    return await this.prisma.product.update({
+    return this.prisma.product.update({
       where: { id },
       data: { status: 'DISABLED' },
     });

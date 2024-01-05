@@ -11,6 +11,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { AccountStatus } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UsersService } from './users.service';
+import { QueryBuilderDto } from '../products/dto/query-builder.dto';
 
 @ApiTags('Users')
 @Controller('users')
@@ -20,6 +21,18 @@ export class UsersController {
   @Post('register')
   register(@Body() createUserDto: CreateUserDto) {
     return this.usersService.register(createUserDto);
+  }
+
+  @Get(':id/estimations')
+  async getEstimations(
+    @Param('id') id: string,
+    @Query('_q') query: QueryBuilderDto,
+  ) {
+    return this.usersService.getEstimations({
+      id,
+      search: query?.search,
+      category: query?.category,
+    });
   }
 
   @Patch(':id/update')
@@ -40,7 +53,13 @@ export class UsersController {
     @Query('search') search: string,
     @Query('category') category: string,
   ) {
-    return this.usersService.getUserInventory(userId, startDate, endDate, category, search);
+    return this.usersService.getUserInventory(
+      userId,
+      startDate,
+      endDate,
+      category,
+      search,
+    );
   }
 
   @Get('get/inventory/all')

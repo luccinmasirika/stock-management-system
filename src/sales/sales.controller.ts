@@ -21,9 +21,9 @@ export class SalesController {
   constructor(private readonly salesService: SalesService) {}
 
   @Post()
-  create(@Body() createSaleDto: CreateSaleDto) {
+  async create(@Body() createSaleDto: CreateSaleDto) {
     try {
-      return this.salesService.create(createSaleDto);
+      return await this.salesService.create(createSaleDto);
     } catch (e) {
       throw new InternalServerErrorException(e);
     }

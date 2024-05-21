@@ -14,11 +14,11 @@ export class SalesService {
   async create(createSaleDto: CreateSaleDto) {
     const { seller, products, ...rest } = createSaleDto;
 
-    for (let i = 0; i < products.length; i++) {
+    for (const element of products) {
       await this.providerService.checkIfOutOfStock(
-        products[i]?.product,
+        element?.product,
         seller,
-        products[i]?.quantity,
+        element?.quantity,
       );
     }
 
@@ -184,6 +184,7 @@ export class SalesService {
         facture: {
           include: {
             products: { include: { product: { include: { category: true } } } },
+            payment: true,
           },
         },
         seller: true,
@@ -203,3 +204,6 @@ export class SalesService {
     return `This action removes a #${id} sale`;
   }
 }
+
+
+// https://jam.dev/c/6a3702ee-cadd-474c-af3f-83fb0ddfa7eb

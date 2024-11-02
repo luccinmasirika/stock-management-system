@@ -24,6 +24,9 @@
   "engines": {
     "node": "16.20.2"
   },
+  "prisma": {
+    "seed": "npx ts-node ./src/prisma/seed.ts"
+  },
   "dependencies": {
     "@nestjs/common": "^8.0.0",
     "@nestjs/config": "^2.2.0",

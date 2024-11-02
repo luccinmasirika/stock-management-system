@@ -7,17 +7,20 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CreateProviderDto } from './dto/create-provider.dto';
 import { QueryBuilderDto } from './dto/query-builder.dto';
 import { ProvidersService } from './providers.service';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @ApiTags('Providers')
 @Controller('providers')
 export class ProvidersController {
   constructor(private readonly providersService: ProvidersService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() createProviderDto: CreateProviderDto) {
     try {
@@ -57,6 +60,7 @@ export class ProvidersController {
     }
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch(':id/accept')
   acceptProvide(@Param('id') id: string) {
     try {
@@ -66,6 +70,7 @@ export class ProvidersController {
     }
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch(':id/reject')
   rejectProvide(@Param('id') id: string) {
     try {

@@ -32,8 +32,23 @@ export class ProvidersService {
   }
 
   async acceptProvide(provideId: string) {
-    const { productId, recipientId, quantity } = await this.findOne(provideId);
-    const acc = await this.increaseStock(productId, recipientId, quantity);
+    const { productId, recipientId, quantity, status } = await this.findOne(
+      provideId,
+    );
+
+    if (!productId || !recipientId || !quantity) {
+      throw new BadRequestException('Provide not found');
+    }
+
+    if (quantity < 1) {
+      throw new BadRequestException('Quantity must be greater than 0');
+    }
+
+    if (status !== 'PENDING') {
+      throw new BadRequestException('Provide already accepted or rejected');
+    }
+
+    await this.increaseStock(productId, recipientId, quantity);
     await this.updateProvideStatus(provideId, 'ACCEPTED');
     return 'Accepted successfully';
   }
